@@ -114,8 +114,11 @@ export const globalcss = ({
         },
 
         writeBundle(options, bundle) {
-            if(options.dir)
-                fs.remove(path.join(options.dir, outputFilename))
+            if(options.dir) {
+                const filename = path.join(options.dir, outputFilename)
+                fs.remove(filename)
+                d(`Removed dev css file ${filename} from bundle.`)
+            }
         },
        
         handleHotUpdate(ctx) {

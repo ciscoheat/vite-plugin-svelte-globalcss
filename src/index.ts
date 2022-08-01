@@ -29,54 +29,29 @@ export const globalcss = ({
         loadPaths: [path.dirname(fileName)], 
         style: "compressed" 
     }, sassOptions)
-
+    
     const d = debug(pluginName)
     if(debugToStdout) d.log = console.info.bind(console)
-    
-    d('Plugin loaded.')
-    
+
+    d('Plugin started.')
+       
     //const svelteHtmlChunk = '/build/index.js'
     const devOutputFile = path.join(assets, outputFilename)
-    
-    const isSass = () => fileName.endsWith('.scss') || fileName.endsWith('.sass')    
     const devSassOptions = () => Object.assign({}, sassOptions, {style: "expanded"})
 
-    const buildCss = async (dev : boolean) => {
-        const options = dev
-            ? devSassOptions()
-            : sassOptions
-            
-        return isSass() 
-            ? sass.compile(fileName, options).css 
-            : fs.readFile(fileName)
+    const buildCss = async (mode : "dev" | "build") => {
+        const options = mode == "dev" ? devSassOptions() : sassOptions
+        return sass.compile(fileName, options).css
     }
         
     const writeHotBuild = async (fileContent : string) => {
         d('Hot compiling sass file.')
         return fs.outputFile(
-            devOutputFile, 
-            isSass()
-                ? sass.compileString(fileContent, devSassOptions()).css
-                : fileContent
+            devOutputFile,
+            sass.compileString(fileContent, devSassOptions()).css
         )
     }
         
-    const writeDevBuildIfModified = async () => {
-        try {
-            const [source, dest] = await Promise.all([fs.stat(fileName), fs.stat(devOutputFile)])
-            if(source.mtimeMs < dest.mtimeMs) {
-                d('Compiled file is newer, no recompilation.')
-                return Promise.resolve()
-            }
-        } catch(err) {
-            // One of the files doesn't exist, so recompile.
-        }
-        
-        d('Compiling sass file for dev server.')        
-        const css = await buildCss(true)
-        return fs.outputFile(devOutputFile, css)
-    }
-
     let refId : string = ''
 
     return {
@@ -85,13 +60,15 @@ export const globalcss = ({
         async buildStart(options) {
             if(this.meta.watchMode) {
                 try {
-                    await writeDevBuildIfModified()
+                    d('Updating css file for dev server.')
+                    const css = await buildCss("dev")
+                    fs.outputFile(devOutputFile, css)
                 } catch(err) {
                     d('Sass compile error!')
                     this.warn(err as any)
                 }
             } else {
-                const content = await buildCss(false)
+                const content = await buildCss("build")
                 refId = this.emitFile({
                     type: 'asset',
                     name: outputFilename,
@@ -117,7 +94,7 @@ export const globalcss = ({
             if(options.dir) {
                 const filename = path.join(options.dir, outputFilename)
                 fs.remove(filename)
-                d(`Removed dev css file ${filename} from bundle.`)
+                d(`Removed dev css file "${filename}" from bundle.`)
             }
         },
        

@@ -15,7 +15,6 @@ interface Config {
 }
 
 const pluginName = 'globalcss'
-const templateParameter = `%sveltekit.${pluginName}%`
 
 export const globalcss = ({
     fileName, 
@@ -35,7 +34,7 @@ export const globalcss = ({
 
     d('Plugin started.')
        
-    //const svelteHtmlChunk = '/build/index.js'
+    const templateParameter = `%sveltekit.${pluginName}%`
     const devOutputFile = path.join(assets, outputFilename)
     const devSassOptions = () => Object.assign({}, sassOptions, {style: "expanded"})
 

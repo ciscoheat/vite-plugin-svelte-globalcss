@@ -74,7 +74,7 @@ import { transformGlobalcss } from 'vite-plugin-svelte-globalcss/hooks'
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
   const response = await resolve(event, {
-    transformPageChunk: transformGlobalcss
+    transformPageChunk: transformGlobalcss()
   });
  
   return response;
@@ -97,6 +97,8 @@ After all this, you can finally enjoy your enhanced Sveltekit project with `npm 
     assets? = "static"
 }
 ```
+
+If you change `outputFilename`, you must also pass that value to the `transformGlobalcss({cssFile: outputFilename})` function in your hooks file.
 
 ## Issues
 

@@ -1,0 +1,26 @@
+{
+  "name": "vite-plugin-svelte-globalcss",
+  "version": "0.1.0",
+  "author": "",
+  "description": "Use global css/sass in a sveltekit app.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./hooks": "./hooks.js"
+  },
+  "license": "MIT",
+  "prepublish": "tsc",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@sveltejs/kit": "1.0.0-next.398",
+    "@types/debug": "^4.1.7",
+    "@types/node": "^18.6.2",
+    "debug": "^4.3.4",
+    "sass": "^1.54.0",
+    "typescript": "^4.7.4",
+    "vite": "^3.0.4"
+  }
+}

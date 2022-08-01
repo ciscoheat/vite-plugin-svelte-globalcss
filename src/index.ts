@@ -1,5 +1,5 @@
 // @ts-ignore
-import type { Plugin } from "vite"
+import type { HmrContext, Plugin } from "vite"
 
 import sass, { Options } from "sass"
 import fs from "fs-extra"
@@ -23,9 +23,10 @@ export const globalcss = ({
     sassOptions = {},
     assets = 'static'
 } : Config) => {
-    
+    const fileDir = path.dirname(fileName)
+
     sassOptions = Object.assign({
-        loadPaths: [path.dirname(fileName)], 
+        loadPaths: [fileDir], 
         style: "compressed" 
     }, sassOptions)
     
@@ -43,14 +44,20 @@ export const globalcss = ({
         return sass.compile(fileName, options).css
     }
         
-    const writeHotBuild = async (fileContent : string) => {
-        d('Hot compiling sass file.')
+    const writeHotString = async (fileContent : string) => {
+        d('Hot compiling directly from fileName.')
         return fs.outputFile(
             devOutputFile,
             sass.compileString(fileContent, devSassOptions()).css
         )
     }
-        
+
+    const writeHotFile = async () => {
+        d('Hot compiling from related file.')
+        const css = await buildCss("dev")
+        return fs.outputFile(devOutputFile, css)
+    }
+
     let refId : string = ''
 
     return {
@@ -59,9 +66,7 @@ export const globalcss = ({
         async buildStart(options) {
             if(this.meta.watchMode) {
                 try {
-                    d('Updating css file for dev server.')
-                    const css = await buildCss("dev")
-                    fs.outputFile(devOutputFile, css)
+                    await writeHotFile()
                 } catch(err) {
                     d('Sass compile error!')
                     this.warn(err as any)
@@ -75,7 +80,7 @@ export const globalcss = ({
                 })    
             }
         },
-        
+       
         renderChunk(code, chunk, options) {
             // Svelte components won't contain the template parameter.
             if(chunk.facadeModuleId?.endsWith('.svelte')) return null
@@ -97,19 +102,34 @@ export const globalcss = ({
             }
         },
        
-        handleHotUpdate(ctx) {
-            if(path.relative(ctx.file, fileName) === '') {
-                ;(ctx.read() as Promise<string>).then(s => {
-                    writeHotBuild(s).then(() => {
-                        d('Sending update event to client.')
-                        ctx.server.ws.send('globalcss:update')
-                    }).catch(err => {
-                        if(err) {
-                            console.warn(err)
-                            ctx.server.ws.send('globalcss:error', err)
-                        }
+        async handleHotUpdate(ctx : HmrContext) {
+            const sendUpdateEvent = () => {
+                d('Sending update event to client.')
+                ctx.server.ws.send('globalcss:update')
+            }
+
+            const isSourceFile = () => path.relative(fileName, ctx.file) === ''
+            const isDevOutputFile = () => path.relative(devOutputFile, ctx.file) === ''
+            const isCssFile = () => ['.css', '.sass', '.scss'].find(ext => ctx.file.endsWith(ext))
+        
+            try {
+                d('handleHotUpdate: ' + ctx.file)
+
+                if(isSourceFile()) {
+                    const s : string = await ctx.read()
+                    await writeHotString(s)
+                    await sendUpdateEvent()
+                } else if(!isDevOutputFile() && isCssFile()) {
+                    setImmediate(async () => {
+                        await writeHotFile()
+                        await sendUpdateEvent()
                     })
-                })
+                }
+            } catch(err) {
+                if(err) {
+                    console.warn(err)
+                    ctx.server.ws.send('globalcss:error', err)
+                }
             }
         } 
     } as Plugin

@@ -104,7 +104,10 @@ export const globalcss = ({
                         d('Sending update event to client.')
                         ctx.server.ws.send('globalcss:update')
                     }).catch(err => {
-                        ctx.server.ws.send('globalcss:error', err)
+                        if(err) {
+                            console.warn(err)
+                            ctx.server.ws.send('globalcss:error', err)
+                        }
                     })
                 })
             }

@@ -10,7 +10,11 @@ Furthermore there seems to be no way to include a global css file without jumpin
 - If your file is built with [Sass](https://sass-lang.com/), you must compile it in a separate build step
 - The file you linked to won't be hot reloaded in Sveltekit.
 
-This plugin has been created to alleviate these problems.
+This plugin has been created to alleviate these problems. Add it to your project with:
+
+```
+pnpm i -D vite-plugin-svelte-globalcss
+```
 
 ## Configuration
 

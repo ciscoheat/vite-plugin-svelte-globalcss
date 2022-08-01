@@ -2,7 +2,7 @@
 import type { Plugin } from "vite"
 
 import sass, { Options } from "sass"
-import fs from "fs/promises"
+import fs from "fs-extra"
 import path from 'path'
 import debug from 'debug'
 
@@ -53,7 +53,7 @@ export const globalcss = ({
         
     const writeHotBuild = async (fileContent : string) => {
         d('Hot compiling sass file.')
-        return fs.writeFile(
+        return fs.outputFile(
             devOutputFile, 
             isSass()
                 ? sass.compileString(fileContent, devSassOptions()).css
@@ -74,7 +74,7 @@ export const globalcss = ({
         
         d('Compiling sass file for dev server.')        
         const css = await buildCss(true)
-        return fs.writeFile(devOutputFile, css)
+        return fs.outputFile(devOutputFile, css)
     }
 
     let refId : string = ''
@@ -113,12 +113,11 @@ export const globalcss = ({
             )
         },
 
-        /*
-        generateBundle(options, bundle) {
-            d(options)
+        writeBundle(options, bundle) {
+            if(options.dir)
+                fs.remove(path.join(options.dir, outputFilename))
         },
-        */
-        
+       
         handleHotUpdate(ctx) {
             if(path.relative(ctx.file, fileName) === '') {
                 ;(ctx.read() as Promise<string>).then(s => {

@@ -1,8 +1,8 @@
 {
   "name": "vite-plugin-svelte-globalcss",
   "version": "0.1.0",
-  "author": "",
-  "description": "Use global css/sass in a sveltekit app.",
+  "author": "Andreas Söderlund <ciscoheat@gmail.com> (https://blog.encodeart.dev)",
+  "description": "Use global css/sass in a Sveltekit app.",
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -10,6 +10,9 @@
   },
   "license": "MIT",
   "prepublish": "tsc",
+  "repository": {
+    "url": "https://github.com/ciscoheat/vite-plugin-svelte-globalcss"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

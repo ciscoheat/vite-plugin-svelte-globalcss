@@ -23,37 +23,36 @@ export const globalcss = ({
     sassOptions = {},
     assets = 'static'
 } : Config) => {
-    const fileDir = path.dirname(fileName)
-
+    
     sassOptions = Object.assign({
-        loadPaths: [fileDir], 
+        loadPaths: [path.dirname(fileName)], 
         style: "compressed" 
     }, sassOptions)
-    
+
+    const templateParameter = `%sveltekit.${pluginName}%`
+    const devOutputFile = path.join(assets, outputFilename)
+    const devSassOptions = Object.assign({}, sassOptions, {style: "expanded"})
+
     const d = debug(pluginName)
     if(debugToStdout) d.log = console.info.bind(console)
 
     d('Plugin started.')
        
-    const templateParameter = `%sveltekit.${pluginName}%`
-    const devOutputFile = path.join(assets, outputFilename)
-    const devSassOptions = () => Object.assign({}, sassOptions, {style: "expanded"})
-
     const buildCss = async (mode : "dev" | "build") => {
-        const options = mode == "dev" ? devSassOptions() : sassOptions
+        const options = mode == "dev" ? devSassOptions : sassOptions
         return sass.compile(fileName, options).css
     }
         
     const writeHotString = async (fileContent : string) => {
-        d('Hot compiling directly from fileName.')
+        d('Compiling dev output file from string.')
         return fs.outputFile(
             devOutputFile,
-            sass.compileString(fileContent, devSassOptions()).css
+            sass.compileString(fileContent, devSassOptions).css
         )
     }
 
     const writeHotFile = async () => {
-        d('Hot compiling from related file.')
+        d('Compiling dev output file.')
         const css = await buildCss("dev")
         return fs.outputFile(devOutputFile, css)
     }
@@ -84,9 +83,6 @@ export const globalcss = ({
         renderChunk(code, chunk, options) {
             // Svelte components won't contain the template parameter.
             if(chunk.facadeModuleId?.endsWith('.svelte')) return null
-            if(code.indexOf(templateParameter) === -1) return null
-
-            d('Replacing template in ' + chunk.fileName)
 
             return code.replace(
                 templateParameter,
@@ -95,11 +91,12 @@ export const globalcss = ({
         },
 
         writeBundle(options, bundle) {
-            if(options.dir) {
-                const filename = path.join(options.dir, outputFilename)
-                fs.remove(filename)
-                d(`Removed dev css file "${filename}" from bundle.`)
-            }
+            if(!options.dir) return
+
+            const filename = path.join(options.dir, outputFilename)
+            d(`Removing dev css file "${filename}" from bundle.`)
+            
+            fs.remove(filename)
         },
        
         async handleHotUpdate(ctx : HmrContext) {
@@ -110,10 +107,10 @@ export const globalcss = ({
 
             const isSourceFile = () => path.relative(fileName, ctx.file) === ''
             const isDevOutputFile = () => path.relative(devOutputFile, ctx.file) === ''
-            const isCssFile = () => ['.css', '.sass', '.scss'].find(ext => ctx.file.endsWith(ext))
+            const isCssFile = () => ['.css', '.sass', '.scss'].some(ext => ctx.file.endsWith(ext))
         
             try {
-                d('handleHotUpdate: ' + ctx.file)
+                //d('handleHotUpdate: ' + ctx.file)
 
                 if(isSourceFile()) {
                     const s : string = await ctx.read()

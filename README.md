@@ -6,15 +6,15 @@ When using a css framework like [Bulma](https://bulma.io/), you configure layout
 
 Furthermore there seems to be no way to include a global css file without jumping through a lot of hoops. The simple solution would be just to add a `<link rel="stylesheet" href="..." />` element in `app.html`. But that has a few drawbacks:
 
-- You can't just link to a stylesheet without having cache problems, so you must regularly bust the cache
-- The file you linked to won't be hot reloaded in Sveltekit
-- If your file is built with [Sass](https://sass-lang.com/), you must compile it in a separate build step.
+- You can't just link to a stylesheet without asking for cache problems, so you must regularly bust the cache
+- If your file is built with [Sass](https://sass-lang.com/), you must compile it in a separate build step
+- The file you linked to won't be hot reloaded in Sveltekit.
 
 This plugin has been created to alleviate these problems.
 
 ## Configuration
 
-Unfortunately there are still a few hoops you need to jump through to make it work, but you will be rewarded with a seamless experience; on the dev server you can save your Sass file and it will be hot reloaded, when building for production the css file will be built as a file included in the normal output, referenced with a cache busting filename from [Vite](https://vitejs.dev/). 
+Unfortunately there are still a few hoops you need to jump through to make it work, but you will be rewarded with a seamless experience; on the dev server you can save your Sass file and it will be hot reloaded, when building for production the css file will be built as a file included in the normal output, referenced with a cache busting filename from [Vite](https://vitejs.dev/).
 
 There are four things you need to do:
 
@@ -49,10 +49,10 @@ It will be replaced by the stylesheet element.
 
 ### 3. Modify the main Svelte component
 
-This code is for the hot reloading functionality. In the "entrypoint" Svelte component or `__layout.svelte`, add this code:
+This code is for the hot reloading functionality. In the main Svelte component or `__layout.svelte`, add this code:
 
 ```html
-<script lang="ts">
+<script>
   import { globalcss } from 'vite-plugin-svelte-globalcss/client'
   globalcss()
 </script>
@@ -81,13 +81,15 @@ export async function handle({ event, resolve }) {
 }
 ```
 
-After all this, you can finally enjoy your enhanced Sveltekit project with `npm run dev` or `npm run build`!
+After all this, you can finally enjoy your enhanced Sveltekit project with `npm run dev` and `npm run build`!
 
 ## Plugin options
 
 ```typescript
 {
     fileName : string
+
+    // See note below if you really need to change this.
     outputFilename? = "global.css"
 
     // See https://sass-lang.com/documentation/js-api/interfaces/Options
@@ -98,8 +100,8 @@ After all this, you can finally enjoy your enhanced Sveltekit project with `npm 
 }
 ```
 
-If you change `outputFilename`, you must also pass that value to the `transformGlobalcss({cssFile: outputFilename})` function in your hooks file.
+*Note:* If you change `outputFilename`, you must also pass that value to the `transformGlobalcss({cssFile: outputFilename})` function in your hooks file.
 
 ## Issues
 
-Creating a plugin like this by understanding the Rollup build process, configuring typescript, figuring out how Rollup/Vite/Svelte interacts, publishing the plugin to NPM with the correct module settings, etc, is honestly quite a lot of work and generally frustrating, so I'm sure this plugin has a lot of issues. Let me know if you find something, or even better, help me out with a PR. Things aren't supposed to be this complicated.
+Creating a plugin like this by understanding the Rollup build process, configuring typescript, figuring out how Rollup/Vite/Svelte interacts, publishing the plugin to NPM with the correct module settings, etc, is honestly quite a lot of work and generally frustrating, so I'm sure this plugin has a lot of issues. Let me know if you find something, or even better, help me out with a PR or good advice. Things aren't supposed to be this complicated.

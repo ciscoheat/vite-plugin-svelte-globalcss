@@ -1,3 +1,7 @@
+# Heads up: Deprecation notice
+
+**Importing the css/sass directly in a Svelte component will work almost just as well, except for a slowdown when hot reloading. Use this project as a way to understand the internals of Rollup, Vite and Sveltekit instead of actually using it.**
+
 # vite-plugin-svelte-globalcss
 
 A [Sveltekit](https://kit.svelte.dev/) plugin that enables you to include a global css/sass file in your Sveltekit project. Supports hot reloading.
@@ -9,12 +13,6 @@ Furthermore there seems to be no way to include a global css file without jumpin
 - You can't just link to a stylesheet without asking for cache problems, so you must regularly bust the cache
 - If your file is built with [Sass](https://sass-lang.com/), you must compile it in a separate build step
 - The file you linked to won't be hot reloaded in Sveltekit.
-
-This plugin has been created to alleviate these problems. Add it to your project with:
-
-```
-pnpm i -D vite-plugin-svelte-globalcss
-```
 
 ## Configuration
 
